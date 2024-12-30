@@ -1,0 +1,62 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+// Function to compute the hash value of a string
+int computeHash(const string& str, int base, int mod) {
+    int hashValue = 0;
+    for (char c : str) {
+        hashValue = (hashValue * base + c) % mod;
+    }
+    return hashValue;
+}
+
+// Rabin-Karp function to find duplicate records
+vector<int> rabinKarp(const vector<string>& records, const string& pattern, int base, int mod) {
+    vector<int> duplicates;
+    int patternHash = computeHash(pattern, base, mod);
+    int patternLength = pattern.length();
+
+    for (int i = 0; i < records.size(); i++) {
+        string record = records[i];
+        for (int j = 0; j <= record.length() - patternLength; j++) {
+            string substring = record.substr(j, patternLength);
+            int substringHash = computeHash(substring, base, mod);
+            if (substringHash == patternHash && substring == pattern) {
+                duplicates.push_back(i);
+                break;
+            }
+        }
+    }
+
+    return duplicates;
+}
+
+int main() {
+    // Utility billing records
+    vector<string> records = {
+        "UserID:123|Service:Electricity|Usage:500kWh|Amount:$100",
+        "UserID:124|Service:Water|Usage:200L|Amount:$20",
+        "UserID:123|Service:Electricity|Usage:500kWh|Amount:$100", // Duplicate
+        "UserID:125|Service:Waste|Usage:50kg|Amount:$10"
+    };
+
+    // Pattern to search (duplicate entry)
+    string pattern = "UserID:123|Service:Electricity|Usage:500kWh|Amount:$100";
+
+    // Parameters for Rabin-Karp
+    int base = 101; // Prime base for hashing
+    int mod = 1e9 + 7; // Large prime modulus
+
+    // Find duplicates
+    vector<int> duplicates = rabinKarp(records, pattern, base, mod);
+
+    // Output results
+    cout << "Duplicate Record Indices:" << endl;
+    for (int index : duplicates) {
+        cout << "Record " << index << ": " << records[index] << endl;
+    }
+
+    return 0;
+}
