@@ -1,0 +1,80 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+// Struct to represent a utility billing record
+struct Record {
+    string userID;
+    string service;
+    string usage;
+    string amount;
+};
+
+// Function to heapify the array
+void heapify(vector<Record>& records, int n, int i) {
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+
+    // Compare left child
+    if (left < n && records[left].userID > records[largest].userID)
+        largest = left;
+
+    // Compare right child
+    if (right < n && records[right].userID > records[largest].userID)
+        largest = right;
+
+    // Swap and continue heapifying if root is not largest
+    if (largest != i) {
+        swap(records[i], records[largest]);
+        heapify(records, n, largest);
+    }
+}
+
+// Heap Sort
+void heapSort(vector<Record>& records) {
+    int n = records.size();
+
+    // Build heap
+    for (int i = n / 2 - 1; i >= 0; i--)
+        heapify(records, n, i);
+
+    // Extract elements from heap one by one
+    for (int i = n - 1; i >= 0; i--) {
+        swap(records[0], records[i]);
+        heapify(records, i, 0);
+    }
+}
+
+// Utility function to print records
+void printRecords(const vector<Record>& records) {
+    for (const auto& record : records) {
+        cout << "UserID: " << record.userID
+             << ", Service: " << record.service
+             << ", Usage: " << record.usage
+             << ", Amount: " << record.amount << endl;
+    }
+}
+
+int main() {
+    // Sample utility billing records
+    vector<Record> records = {
+        {"123", "Electricity", "500kWh", "$100"},
+        {"124", "Water", "200L", "$20"},
+        {"122", "Electricity", "600kWh", "$120"},
+        {"125", "Waste", "50kg", "$10"}
+    };
+
+    cout << "Original Records:\n";
+    printRecords(records);
+
+    // Sort records using Heap Sort
+    heapSort(records);
+
+    cout << "\nSorted Records by UserID:\n";
+    printRecords(records);
+
+    return 0;
+}
