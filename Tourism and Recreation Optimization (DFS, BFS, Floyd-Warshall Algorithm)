@@ -1,0 +1,117 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+using namespace std;
+
+// Class for the Graph
+class TourismGraph {
+public:
+    int V; // Number of vertices
+    vector<vector<int>> adjMatrix; // Adjacency matrix for Floyd-Warshall
+    vector<vector<pair<int, int>>> adjList; // Adjacency list for BFS and DFS
+
+    TourismGraph(int vertices) : V(vertices) {
+        adjMatrix.resize(V, vector<int>(V, INT_MAX));
+        adjList.resize(V);
+        for (int i = 0; i < V; ++i)
+            adjMatrix[i][i] = 0; // Initialize diagonal of adjacency matrix to 0
+    }
+
+    // Add edge to the graph
+    void addEdge(int u, int v, int travelTime) {
+        adjList[u].push_back({v, travelTime});
+        adjList[v].push_back({u, travelTime});
+        adjMatrix[u][v] = travelTime;
+        adjMatrix[v][u] = travelTime;
+    }
+
+    // Depth-First Search (DFS)
+    void dfsUtil(int node, vector<bool>& visited) {
+        visited[node] = true;
+        cout << node << " ";
+        for (auto& neighbor : adjList[node]) {
+            if (!visited[neighbor.first])
+                dfsUtil(neighbor.first, visited);
+        }
+    }
+
+    void dfs(int start) {
+        vector<bool> visited(V, false);
+        cout << "\nDFS Traversal Starting from Node " << start << ": ";
+        dfsUtil(start, visited);
+        cout << endl;
+    }
+
+    // Breadth-First Search (BFS)
+    void bfs(int start) {
+        vector<bool> visited(V, false);
+        queue<int> q;
+
+        visited[start] = true;
+        q.push(start);
+
+        cout << "\nBFS Traversal Starting from Node " << start << ": ";
+        while (!q.empty()) {
+            int node = q.front();
+            q.pop();
+            cout << node << " ";
+            for (auto& neighbor : adjList[node]) {
+                if (!visited[neighbor.first]) {
+                    visited[neighbor.first] = true;
+                    q.push(neighbor.first);
+                }
+            }
+        }
+        cout << endl;
+    }
+
+    // Floyd-Warshall Algorithm
+    void floydWarshall() {
+        vector<vector<int>> dist = adjMatrix; // Distance matrix
+        for (int k = 0; k < V; ++k) {
+            for (int i = 0; i < V; ++i) {
+                for (int j = 0; j < V; ++j) {
+                    if (dist[i][k] != INT_MAX && dist[k][j] != INT_MAX)
+                        dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
+                }
+            }
+        }
+
+        cout << "\nFloyd-Warshall All-Pairs Shortest Paths:\n";
+        for (int i = 0; i < V; ++i) {
+            for (int j = 0; j < V; ++j) {
+                if (dist[i][j] == INT_MAX)
+                    cout << "INF ";
+                else
+                    cout << dist[i][j] << " ";
+            }
+            cout << endl;
+        }
+    }
+};
+
+int main() {
+    int vertices = 5;
+
+    // Create the graph
+    TourismGraph graph(vertices);
+
+    // Add edges (tourist spots and travel times)
+    graph.addEdge(0, 1, 10);
+    graph.addEdge(0, 2, 15);
+    graph.addEdge(1, 3, 12);
+    graph.addEdge(2, 3, 10);
+    graph.addEdge(3, 4, 5);
+
+    // Perform DFS
+    graph.dfs(0);
+
+    // Perform BFS
+    graph.bfs(0);
+
+    // Perform Floyd-Warshall
+    graph.floydWarshall();
+
+    return 0;
+}
