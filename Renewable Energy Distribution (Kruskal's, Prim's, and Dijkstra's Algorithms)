@@ -1,0 +1,199 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <queue>
+#include <climits>
+#include <chrono>
+using namespace std;
+
+// Kruskal's Algorithm
+class KruskalGraph {
+public:
+    int V;
+    vector<pair<int, pair<int, int>>> edges; // {weight, {u, v}}
+
+    KruskalGraph(int vertices) : V(vertices) {}
+
+    void addEdge(int u, int v, int weight) {
+        edges.push_back({weight, {u, v}});
+    }
+
+    int find(vector<int>& parent, int i) {
+        if (parent[i] != i)
+            parent[i] = find(parent, parent[i]);
+        return parent[i];
+    }
+
+    void unionSet(vector<int>& parent, vector<int>& rank, int x, int y) {
+        int rootX = find(parent, x);
+        int rootY = find(parent, y);
+        if (rank[rootX] < rank[rootY])
+            parent[rootX] = rootY;
+        else if (rank[rootX] > rank[rootY])
+            parent[rootY] = rootX;
+        else {
+            parent[rootY] = rootX;
+            rank[rootX]++;
+        }
+    }
+
+    void kruskalMST() {
+        sort(edges.begin(), edges.end());
+        vector<int> parent(V);
+        vector<int> rank(V, 0);
+        for (int i = 0; i < V; i++)
+            parent[i] = i;
+
+        vector<pair<int, pair<int, int>>> mst;
+        int totalWeight = 0;
+
+        for (auto& edge : edges) {
+            int weight = edge.first;
+            int u = edge.second.first;
+            int v = edge.second.second;
+            if (find(parent, u) != find(parent, v)) {
+                unionSet(parent, rank, u, v);
+                mst.push_back(edge);
+                totalWeight += weight;
+            }
+        }
+
+        cout << "\nKruskal's MST:" << endl;
+        for (auto& edge : mst)
+            cout << edge.second.first << " - " << edge.second.second << " : " << edge.first << endl;
+        cout << "Total Weight: " << totalWeight << endl;
+    }
+};
+
+// Prim's Algorithm
+class PrimGraph {
+public:
+    int V;
+    vector<vector<pair<int, int>>> adj; // {v, weight}
+
+    PrimGraph(int vertices) : V(vertices) {
+        adj.resize(V);
+    }
+
+    void addEdge(int u, int v, int weight) {
+        adj[u].push_back({v, weight});
+        adj[v].push_back({u, weight});
+    }
+
+    void primMST() {
+        vector<int> key(V, INT_MAX);
+        vector<bool> inMST(V, false);
+        vector<int> parent(V, -1);
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
+
+        key[0] = 0;
+        pq.push({0, 0});
+
+        while (!pq.empty()) {
+            int u = pq.top().second;
+            pq.pop();
+
+            inMST[u] = true;
+
+            for (auto& [v, weight] : adj[u]) {
+                if (!inMST[v] && weight < key[v]) {
+                    key[v] = weight;
+                    pq.push({key[v], v});
+                    parent[v] = u;
+                }
+            }
+        }
+
+        cout << "\nPrim's MST:" << endl;
+        for (int i = 1; i < V; i++)
+            cout << parent[i] << " - " << i << " : " << key[i] << endl;
+    }
+};
+
+// Dijkstra's Algorithm
+class DijkstraGraph {
+public:
+    int V;
+    vector<vector<pair<int, int>>> adj; // {v, weight}
+
+    DijkstraGraph(int vertices) : V(vertices) {
+        adj.resize(V);
+    }
+
+    void addEdge(int u, int v, int weight) {
+        adj[u].push_back({v, weight});
+        adj[v].push_back({u, weight});
+    }
+
+    void dijkstra(int src) {
+        vector<int> dist(V, INT_MAX);
+        dist[src] = 0;
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
+
+        pq.push({0, src});
+
+        while (!pq.empty()) {
+            int u = pq.top().second;
+            pq.pop();
+
+            for (auto& [v, weight] : adj[u]) {
+                if (dist[u] + weight < dist[v]) {
+                    dist[v] = dist[u] + weight;
+                    pq.push({dist[v], v});
+                }
+            }
+        }
+
+        cout << "\nDijkstra's Shortest Paths from Node " << src << ":" << endl;
+        for (int i = 0; i < V; i++)
+            cout << i << " : " << dist[i] << endl;
+    }
+};
+
+int main() {
+    int vertices = 5;
+
+    // Kruskal's Algorithm
+    KruskalGraph kg(vertices);
+    kg.addEdge(0, 1, 10);
+    kg.addEdge(0, 2, 15);
+    kg.addEdge(1, 3, 10);
+    kg.addEdge(2, 3, 10);
+    kg.addEdge(3, 4, 5);
+
+    auto start = chrono::high_resolution_clock::now();
+    kg.kruskalMST();
+    auto end = chrono::high_resolution_clock::now();
+    cout << "Kruskal's Execution Time: "
+         << chrono::duration_cast<chrono::microseconds>(end - start).count() << " μs" << endl;
+
+    // Prim's Algorithm
+    PrimGraph pg(vertices);
+    pg.addEdge(0, 1, 10);
+    pg.addEdge(0, 2, 15);
+    pg.addEdge(1, 3, 10);
+    pg.addEdge(2, 3, 10);
+    pg.addEdge(3, 4, 5);
+
+    start = chrono::high_resolution_clock::now();
+    pg.primMST();
+    end = chrono::high_resolution_clock::now();
+    cout << "Prim's Execution Time: "
+         << chrono::duration_cast<chrono::microseconds>(end - start).count() << " μs" << endl;
+
+    // Dijkstra's Algorithm
+    DijkstraGraph dg(vertices);
+    dg.addEdge(0, 1, 10);
+    dg.addEdge(0, 2, 15);
+    dg.addEdge(1, 3, 10);
+    dg.addEdge(2, 3, 10);
+    dg.addEdge(3, 4, 5);
+
+    start = chrono::high_resolution_clock::now();
+    dg.dijkstra(0);
+    end = chrono::high_resolution_clock::now();
+    cout << "Dijkstra's Execution Time: "
+         << chrono::duration_cast<chrono::microseconds>(end - start).count() << " μs" << endl;
+
+    return 0;
+}
