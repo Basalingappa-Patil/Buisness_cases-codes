@@ -1,0 +1,88 @@
+#include <iostream>
+#define MAX 999999
+using namespace std;
+
+class dijkstra {
+public:
+    int dist[100];
+    int path[100];
+    int visited[100] = {0};
+    int v;
+    int src;
+    void read(int cost[50][50]);
+    void initialize(int cost[50][50]);
+    void compute(int cost[50][50]);
+    void display();
+};
+
+void dijkstra::initialize(int cost[50][50]) {
+    for (int i = 0; i < v; i++) {
+        path[i] = src;
+        dist[i] = cost[src][i];
+        visited[i] = 0;
+    }
+    visited[src] = 1;
+}
+
+void dijkstra::read(int cost[50][50]) {
+    cout << "Enter the cost matrix:" << endl;
+    for (int i = 0; i < v; i++) {
+        for (int j = 0; j < v; j++) {
+            cin >> cost[i][j];
+            if (i != j && cost[i][j] == 0) {
+                cost[i][j] = MAX;
+            }
+        }
+    }
+}
+
+void dijkstra::compute(int cost[50][50]) {
+    for (int count = 1; count < v; count++) {
+        int minDist = MAX;
+        int nextNode = -1;
+        for (int i = 0; i < v; i++) {
+            if (!visited[i] && dist[i] < minDist) {
+                minDist = dist[i];
+                nextNode = i;
+            }
+        }
+        if (nextNode == -1) break;
+        visited[nextNode] = 1;
+        for (int i = 0; i < v; i++) {
+            if (!visited[i] && cost[nextNode][i] != MAX) {
+                int newDist = dist[nextNode] + cost[nextNode][i];
+                if (newDist < dist[i]) {
+                    dist[i] = newDist;
+                    path[i] = nextNode;
+                }
+            }
+        }
+    }
+}
+
+void dijkstra::display() {
+    cout << "Vertex\tDistance from Source\tPath" << endl;
+    for (int i = 0; i < v; i++) {
+        cout << i << "\t" << dist[i] << "\t\t";
+        int current = i;
+        while (current != src) {
+            cout << current << " <- ";
+            current = path[current];
+        }
+        cout << src << endl;
+    }
+}
+
+int main() {
+    int cost[50][50];
+    dijkstra d;
+    cout << "Enter the number of vertices: ";
+    cin >> d.v;
+    d.read(cost);
+    cout << "Enter the source vertex: ";
+    cin >> d.src;
+    d.initialize(cost);
+    d.compute(cost);
+    d.display();
+    return 0;
+}
